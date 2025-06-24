@@ -1,0 +1,507 @@
+getgenv().Config = {
+    Box = {
+        Enable = true,
+        Type = 'Full', -- Corner
+
+        Color = Color3.fromRGB(255, 255, 255),
+        Filled = {
+            Enable = false,
+            Gradient = {
+                Enable = false,
+                Color = {
+                    Start = Color3.fromRGB(255, 255, 255),
+                    End = Color3.fromRGB(0, 0, 0);
+                },
+                Rotation = {
+                    Enable = false,
+                    Auto = false,
+                    Static = 90;
+                },
+                Transparency = 0.5;
+            }
+        }
+    },
+    Text = {
+        Enable = true,
+        --
+        Flags = {
+            Enable = true,
+            Color = Color3.fromRGB(255, 255, 255);
+        },
+        Name = {
+            Enable = true,
+            Teamcheck = true,
+            Color = Color3.fromRGB(255, 255, 255);
+        },
+        Studs = {
+            Enable = true,
+            Color = Color3.fromRGB(255, 255, 255);
+        },
+        Tool = {
+            Enable = true,
+            Color = Color3.fromRGB(255, 255, 255);
+        },
+        Armor = {
+            Enable = false,
+            Color = Color3.fromRGB(255, 255, 255);
+        },
+        Health = {
+            Enable = true,
+            Color = Color3.fromRGB(255, 255, 255);
+        },
+    },
+    Bars = {
+        Enable = true,
+        Health = {
+            Enable = true,
+            Color = Color3.fromRGB(117, 182, 105),
+            Lerp = false;
+        },
+        Armor = {
+            Enable = false,
+            Color = Color3.fromRGB(105, 138, 182),
+            Lerp = false;
+        }
+    }
+}
+
+Config = Config;
+Drawing = Drawing;
+
+local gui_inset = game:GetService("GuiService"):GetGuiInset()
+
+local utility, connections, cache = {}, {}, {};
+utility.funcs = utility.funcs or {};
+
+utility.funcs.render = function(player)
+    if not player then return end
+
+    cache[player] = cache[player] or {};
+    cache[player].Box = {};
+
+    if Config.Box.Enable then
+        if Config.Box.Type == "Full" then
+            cache[player].Box.Full = {
+                Square = Drawing.new("Square"),
+                Inline = Drawing.new("Square"),
+                Outline = Drawing.new("Square")
+            }
+            if Config.Box.Filled and Config.Box.Filled.Enable then
+                cache[player].Box.Full.Filled = Instance.new('Frame', Instance.new('ScreenGui', game.CoreGui))
+            end
+        elseif Config.Box.Type == "Corner" then
+            cache[player].Box.Corner = {
+                TopLeft1 = Drawing.new("Line"),
+                TopLeft2 = Drawing.new("Line"),
+                TopRight1 = Drawing.new("Line"),
+                TopRight2 = Drawing.new("Line"),
+                BottomLeft1 = Drawing.new("Line"),
+                BottomLeft2 = Drawing.new("Line"),
+                BottomRight1 = Drawing.new("Line"),
+                BottomRight2 = Drawing.new("Line")
+            }
+        end
+    end
+
+    cache[player].Text = {}
+    if Config.Text.Enable then
+        if Config.Text.Armor.Enable then
+            cache[player].Text.Armor = Drawing.new("Text")
+            cache[player].Text.Armor.Outline = true
+        end
+        if Config.Text.Flags.Enable then
+            cache[player].Text.Flags = Drawing.new("Text")
+            cache[player].Text.Flags.Outline = true
+        end
+        if Config.Text.Health.Enable then
+            cache[player].Text.Health = Drawing.new("Text")
+            cache[player].Text.Health.Outline = true
+        end
+        if Config.Text.Name.Enable then
+            cache[player].Text.Name = Drawing.new("Text")
+            cache[player].Text.Name.Outline = true
+        end
+        if Config.Text.Studs.Enable then
+            cache[player].Text.Studs = Drawing.new("Text")
+            cache[player].Text.Studs.Outline = true
+        end
+        if Config.Text.Tool.Enable then
+            cache[player].Text.Tool = Drawing.new("Text")
+            cache[player].Text.Tool.Outline = true
+        end
+    end
+
+    cache[player].Bars = {}
+    if Config.Bars.Enable then
+        if Config.Bars.Armor.Enable then
+            cache[player].Bars.Armor = {
+                Square = Drawing.new("Square"),
+                Outline = Drawing.new("Square")
+            }
+        end
+        if Config.Bars.Health.Enable then
+            cache[player].Bars.Health = {
+                Square = Drawing.new("Square"),
+                Outline = Drawing.new("Square")
+            }
+        end
+    end
+end
+
+utility.funcs.remove = function(player)
+    if cache[player] then
+        if cache[player].Box.Full then
+            if cache[player].Box.Full.Square then
+                cache[player].Box.Full.Square:Remove()
+            end
+            if cache[player].Box.Full.Outline then
+                cache[player].Box.Full.Outline:Remove()
+            end
+            if cache[player].Box.Full.Inline then
+                cache[player].Box.Full.Inline:Remove()
+            end
+            if cache[player].Box.Full.Filled then
+                cache[player].Box.Full.Filled:Destroy()
+            end
+        end
+        if cache[player].Text then
+            if cache[player].Text.Armor then
+                cache[player].Text.Armor:Remove()
+            end
+            if cache[player].Text.Flags then
+                cache[player].Text.Flags:Remove()
+            end
+            if cache[player].Text.Health then
+                cache[player].Text.Health:Remove()
+            end
+            if cache[player].Text.Name then
+                cache[player].Text.Name:Remove()
+            end
+            if cache[player].Text.Studs then
+                cache[player].Text.Studs:Remove()
+            end
+            if cache[player].Text.Tool then
+                cache[player].Text.Tool:Remove()
+            end
+        end
+        if cache[player].Bars then
+            if cache[player].Bars.Armor then
+                if cache[player].Bars.Armor.Square then
+                    cache[player].Bars.Armor.Square:Remove()
+                end
+                if cache[player].Bars.Armor.Outline then
+                    cache[player].Bars.Armor.Outline:Remove()
+                end
+            end
+            if cache[player].Bars.Health then
+                if cache[player].Bars.Health.Square then
+                    cache[player].Bars.Health.Square:Remove()
+                end
+                if cache[player].Bars.Health.Outline then
+                    cache[player].Bars.Health.Outline:Remove()
+                end
+            end
+        end
+        cache[player] = nil
+    end
+end;
+
+utility.funcs.clear_esp = function(player)
+    if not cache[player] then return end
+    
+    if cache[player].Box then
+        if cache[player].Box.Full then
+            cache[player].Box.Full.Square.Visible = false
+            cache[player].Box.Full.Outline.Visible = false
+            cache[player].Box.Full.Inline.Visible = false
+            if cache[player].Box.Full.Filled then
+                cache[player].Box.Full.Filled.Visible = false
+            end
+        end
+        if cache[player].Box.Corner then
+            for _, line in pairs(cache[player].Box.Corner) do
+                line.Visible = false
+            end
+        end
+    end
+    
+    if cache[player].Text then
+        for _, text in pairs(cache[player].Text) do
+            text.Visible = false
+        end
+    end
+    
+    if cache[player].Bars then
+        if cache[player].Bars.Health then
+            cache[player].Bars.Health.Square.Visible = false
+            cache[player].Bars.Health.Outline.Visible = false
+        end
+        if cache[player].Bars.Armor then
+            cache[player].Bars.Armor.Square.Visible = false
+            cache[player].Bars.Armor.Outline.Visible = false
+        end
+    end
+end
+utility.funcs.update = function(player)
+    if not player then return end
+    if not cache[player] then return end;
+    local character = player.Character
+    local client_character = game.Players.LocalPlayer.Character
+    local camera = workspace.CurrentCamera
+
+    if not character or not client_character then return end
+
+    local root_part = character:FindFirstChild("HumanoidRootPart")
+    local client_root_part = client_character:FindFirstChild("HumanoidRootPart")
+    local lower_torso = character:FindFirstChild("LowerTorso")
+    local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+
+    if not root_part or not humanoid then return end
+
+    local char_height = character:GetExtentsSize().Y / 2
+    local top, top_onscreen = camera:WorldToViewportPoint(root_part.Position + Vector3.new(0, char_height, 0))
+    local realbottom_part = lower_torso or root_part
+    local bottom, bottom_onscreen = camera:WorldToViewportPoint(realbottom_part.Position - Vector3.new(0, char_height, 0))
+
+    if not top or not bottom then
+            utility.funcs.clear_esp(player)
+        return
+    end
+
+    local screen_size = (bottom.Y - top.Y)
+    if screen_size <= 0 then
+        utility.funcs.clear_esp(player)
+        return
+    end
+
+    local position = Vector2.new(top.X - (screen_size * 0.65 / 2), top.Y)
+    local size = Vector2.new(screen_size * 0.65, screen_size)
+
+    if Config.Box.Enable then
+        if Config.Box.Type == "Full" then
+            cache[player].Box.Full.Square.Visible = true
+            cache[player].Box.Full.Square.Position = position
+            cache[player].Box.Full.Square.Size = size
+            cache[player].Box.Full.Square.Color = Config.Box.Color
+            cache[player].Box.Full.Square.Thickness = 1
+            cache[player].Box.Full.Square.Filled = false
+            cache[player].Box.Full.Square.ZIndex = 9e9
+
+            cache[player].Box.Full.Outline.Visible = true
+            cache[player].Box.Full.Outline.Position = position - Vector2.new(1, 1)
+            cache[player].Box.Full.Outline.Size = size + Vector2.new(2, 2)
+            cache[player].Box.Full.Outline.Color = Color3.new(0, 0, 0)
+            cache[player].Box.Full.Outline.Thickness = 1
+            cache[player].Box.Full.Outline.Filled = false
+    
+            cache[player].Box.Full.Inline.Visible = true
+            cache[player].Box.Full.Inline.Position = position + Vector2.new(1, 1)
+            cache[player].Box.Full.Inline.Size = size - Vector2.new(2, 2)
+            cache[player].Box.Full.Inline.Color = Color3.new(0, 0, 0)
+            cache[player].Box.Full.Inline.Thickness = 1
+            cache[player].Box.Full.Inline.Filled = false
+    
+            if Config.Box.Filled.Enable and cache[player].Box.Full.Filled then
+                cache[player].Box.Full.Filled.Position = UDim2.new(0, position.X, 0, position.Y - gui_inset.Y)
+                cache[player].Box.Full.Filled.Size = UDim2.new(0, size.X, 0, size.Y)
+                cache[player].Box.Full.Filled.BackgroundTransparency = (Config.Box.Filled.Gradient.Transparency or 0.5)
+                cache[player].Box.Full.Filled.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                cache[player].Box.Full.Filled.Visible = true
+                cache[player].Box.Full.Filled.ZIndex = -9e9
+                if Config.Box.Filled.Gradient.Enable and not cache[player].Box.Full.Filled:FindFirstChild("Gradient") then
+                    local g = Instance.new("UIGradient")
+                    g.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, Config.Box.Filled.Gradient.Color.Start),
+                        ColorSequenceKeypoint.new(1, Config.Box.Filled.Gradient.Color.End)
+                    })
+    
+                    if Config.Box.Filled.Gradient.Rotation.Enable then
+                       g.Rotation = Config.Box.Filled.Gradient.Rotation.Static
+                    end
+                    g.Parent = cache[player].Box.Full.Filled
+                end
+            elseif cache[player].Box.Full.Filled then
+                cache[player].Box.Full.Filled.Visible = false
+            end
+        elseif Config.Box.Type == "Corner" then
+            return
+        end
+    else
+        if cache[player].Box.Full then
+            cache[player].Box.Full.Square.Visible = false
+            cache[player].Box.Full.Outline.Visible = false
+            cache[player].Box.Full.Inline.Visible = false
+            if cache[player].Box.Full.Filled then
+                cache[player].Box.Full.Filled.Visible = false
+            end
+        end
+    end
+    if Config.Text.Enable then
+        if Config.Text.Armor.Enable then
+           --
+            local armor; --(make an ratio got lazy)
+            cache[player].Text.Armor.Visible = true
+            cache[player].Text.Armor.Position = position + Vector2.new(size.X + 2, 0)
+            cache[player].Text.Armor.Text = math.floor(armor).."%"
+            cache[player].Text.Armor.Color = Config.Text.Armor.Color
+            cache[player].Text.Armor.Font = 1
+            
+        end
+
+        if Config.Text.Health.Enable and humanoid then
+            cache[player].Text.Health.Visible = true
+        
+            local health = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+            local bar_width = 3
+            local bar_height = size.Y
+        
+            local bar_x = position.X - (bar_width + 2) - 2
+            local bar_y = position.Y
+            local fill_y = bar_y + (1 - health) * bar_height
+        
+            local text_x = bar_x + bar_width - 40
+            local text_y = fill_y
+        
+            cache[player].Text.Health.Position = Vector2.new(text_x, text_y)
+            cache[player].Text.Health.Text = math.floor(humanoid.Health).."%"
+            cache[player].Text.Health.Color = Config.Text.Health.Color
+            cache[player].Text.Health.Font = 2
+        else
+            cache[player].Text.Health.Visible = false
+        end
+
+        if Config.Text.Tool.Enable then
+            local tool = player.Character:FindFirstChildWhichIsA("Tool")
+            
+            if tool then
+                cache[player].Text.Tool.Visible = true
+                cache[player].Text.Tool.Position = position + Vector2.new(size.X / 2 - cache[player].Text.Tool.TextBounds.X / 2, size.Y + 2 + cache[player].Text.Tool.TextBounds.Y)
+                cache[player].Text.Tool.Text = tool.Name
+            else
+                cache[player].Text.Tool.Visible = true
+                cache[player].Text.Tool.Position = position + Vector2.new(size.X / 2 - cache[player].Text.Tool.TextBounds.X / 2, size.Y + 2 + cache[player].Text.Tool.TextBounds.Y)
+                cache[player].Text.Tool.Text = "none"
+            end
+            
+            cache[player].Text.Tool.Color = Config.Text.Tool.Color
+            cache[player].Text.Tool.Font = 2
+        end
+
+        if Config.Text.Flags.Enable then
+            cache[player].Text.Flags.Visible = true
+            cache[player].Text.Flags.Position = position + Vector2.new(size.X + 4, -2)
+            cache[player].Text.Flags.Text = "Idle"
+            cache[player].Text.Flags.Color = Config.Text.Flags.Color
+            cache[player].Text.Flags.Font = 2
+        else
+            cache[player].Text.Flags.Visible = false
+        end
+
+        if Config.Text.Name.Enable then
+            local name = player.Name
+            cache[player].Text.Name.Visible = true
+            cache[player].Text.Name.Position = position + Vector2.new(size.X / 2 - cache[player].Text.Name.TextBounds.X / 2, -18)
+            cache[player].Text.Name.Text = name
+            cache[player].Text.Name.Color = Config.Text.Name.Color
+            cache[player].Text.Name.Font = 2
+        end
+
+        if Config.Text.Studs.Enable then
+            local distance = 69
+            cache[player].Text.Studs.Visible = true
+            cache[player].Text.Studs.Position = position + Vector2.new(size.X / 2 - cache[player].Text.Studs.TextBounds.X / 2, size.Y + 8)
+            cache[player].Text.Studs.Text = tostring(distance) .. " studs"
+            cache[player].Text.Studs.Color = Config.Text.Studs.Color
+            cache[player].Text.Studs.Font = 2
+        end
+    end
+
+    if Config.Bars.Enable then
+                 if Config.Bars.Health.Enable and humanoid then
+                    local health = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+
+                    local bar_height = size.Y
+                    local bar_width = 3
+
+                    local x = position.X - (bar_width + 2) - 2
+                    local y = position.Y
+
+                    local r, g, b
+                    if health > 0.5 then
+                        r = (1 - health) * 255
+                        g = 255
+                        b = 0
+                    else
+                        r = 255
+                        g = health * 165
+                        b = 0
+                    end
+
+                    cache[player].Bars.Health.Square.Color = Color3.fromRGB(r, g, b)
+
+                    cache[player].Bars.Health.Outline.Visible = true
+                    cache[player].Bars.Health.Outline.Position = Vector2.new(x - 1, y - 1)
+                    cache[player].Bars.Health.Outline.Size = Vector2.new(bar_width + 2, bar_height + 2)
+                    cache[player].Bars.Health.Outline.Color = Color3.new(0, 0, 0)
+                    cache[player].Bars.Health.Outline.Filled = false
+
+                    cache[player].Bars.Health.Square.ZIndex = 9e9
+                    cache[player].Bars.Health.Square.Visible = true
+                    cache[player].Bars.Health.Square.Position = Vector2.new(x, y + (1 - health) * bar_height)
+                    cache[player].Bars.Health.Square.Size = Vector2.new(bar_width, health * bar_height)
+                    cache[player].Bars.Health.Square.Filled = true
+                else
+                    cache[player].Bars.Health.Outline.Visible = false
+                    cache[player].Bars.Health.Square.Visible = false
+                end
+    
+        if Config.Bars.Armor.Enable then
+            local armor = 0.5
+            local bar_height = 3
+            local bar_width = size.X
+    
+            local x = position.X
+            local y = position.Y + size.Y + 2
+    
+            cache[player].Bars.Armor.Outline.Visible = true
+            cache[player].Bars.Armor.Outline.Position = Vector2.new(x - 1, y - 1)
+            cache[player].Bars.Armor.Outline.Size = Vector2.new(bar_width + 2, bar_height + 2)
+            cache[player].Bars.Armor.Outline.Color = Color3.new(0, 0, 0)
+            cache[player].Bars.Armor.Outline.Filled = true
+    
+            cache[player].Bars.Armor.Square.Visible = true
+            cache[player].Bars.Armor.Square.Position = Vector2.new(x + (1 - armor) * bar_width, y)
+            cache[player].Bars.Armor.Square.Size = Vector2.new(armor * bar_width, bar_height)
+            cache[player].Bars.Armor.Square.Color = Config.Bars.Armor.Color
+            cache[player].Bars.Armor.Square.Filled = true
+        end
+    end
+end
+
+
+for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+    if player ~= game.Players.LocalPlayer then
+        utility.funcs.render(player)
+    end
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        utility.funcs.render(player)
+    end
+end)
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        utility.funcs.clear_esp(player)
+    end
+end)
+
+connections.main = connections.main or {}
+connections.main.RenderStepped = game:GetService("RunService").RenderStepped:Connect(function()
+    for v, _ in pairs(cache) do
+        if v then
+            utility.funcs.update(v)
+        end
+    end
+end) 

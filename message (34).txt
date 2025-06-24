@@ -1,0 +1,147 @@
+local config = {
+    Enabled = true,
+    Prediction = 0.166091,
+    Bone = "HumanoidRootPart",
+    Keybind = "Q",
+    TracerColor = Color3.fromRGB(255, 255, 255), 
+    TracerThickness = 2
+}
+
+local Target
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local Tracer = Drawing.new("Line")
+Tracer.Visible = false
+Tracer.Color = config.TracerColor
+Tracer.Thickness = config.TracerThickness
+
+local function Notify(message)
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Notification",
+        Text = message,
+        Duration = 5
+    })
+end
+
+local function GetClosestPlayerToMouse()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    local mousePosition = Vector2.new(Mouse.X, Mouse.Y)
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(config.Bone) then
+            local characterPart = player.Character[config.Bone]
+            local screenPoint, onScreen = workspace.CurrentCamera:WorldToViewportPoint(characterPart.Position)
+            if onScreen then
+                local screenPosition = Vector2.new(screenPoint.X, screenPoint.Y)
+                local distance = (mousePosition - screenPosition).Magnitude
+                if distance < shortestDistance then
+                    closestPlayer = player
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode[config.Keybind] and config.Enabled then
+        if Target then
+            Target = nil
+            Tracer.Visible = false
+            Notify("Target cleared")
+        else
+            local targetPlayer = GetClosestPlayerToMouse()
+            if targetPlayer then
+                Target = targetPlayer
+                Notify("Targeting " .. targetPlayer.DisplayName)
+            else
+                Notify("No player near mouse")
+            end
+        end
+    end
+end)
+
+--[[local Final = Vector3.zero
+local Handler = game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):FindFirstChild("GunHandler")
+local Module = require(Handler)
+local Offset = CFrame.new(0, 0.7, -3.8)
+
+Module.getAim = function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("Tool") then
+        local Tool = LocalPlayer.Character:FindFirstChildWhichIsA("Tool")
+        if Tool:FindFirstChild("Handle") then
+            local Muzzle = (Tool.Handle.CFrame * Offset).Position
+            return (Final - Muzzle).Unit
+        end
+    end
+    return Vector3.zero
+end--]]
+
+local Utility = { Method = "UpdateMousePos" }
+local MainRemote
+
+--// How does this work?
+--// Put your game ID and the remote event below
+if game.PlaceId == 2788229376 or game.PlaceId == 7213786345 then
+    -- Games that use UpdateMousePosI2
+    Utility.Method = "UpdateMousePosI2"
+    if game.ReplicatedStorage:FindFirstChild("MainEvent") then
+        MainRemote = game.ReplicatedStorage.MainEvent
+    end
+elseif game.PlaceId == 84366677940861 or game.PlaceId == 77369032494150 then
+    -- Games that use MOUSE
+    Utility.Method = "MOUSE"
+    if game.ReplicatedStorage:FindFirstChild("MAINEVENT") then
+        MainRemote = game.ReplicatedStorage.MAINEVENT
+    end
+else
+    -- Default: Try both UpdateMousePosI2 and UpdateMousePos
+    if game.ReplicatedStorage:FindFirstChild("MainEvent") then
+        MainRemote = game.ReplicatedStorage.MainEvent
+
+        -- Attempt to detect and set the correct method
+        if MainRemote:FindFirstChild("UpdateMousePosI2") then
+            Utility.Method = "UpdateMousePosI2"
+        else
+            Utility.Method = "UpdateMousePos"
+        end
+    end
+end
+
+
+if LocalPlayer.Character then
+    setupToolConnection(LocalPlayer.Character)
+end
+
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+    setupToolConnection(newCharacter)
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if Target and Target.Character and Target.Character:FindFirstChild(config.Bone) then
+        local characterPart = Target.Character[config.Bone]
+        local predictedPosition = characterPart.Position
+
+        local screenPoint, onScreen = workspace.CurrentCamera:WorldToViewportPoint(characterPart.Position)
+
+        if onScreen then
+            Final = predictedPosition
+
+            
+            Tracer.Visible = true
+            Tracer.From = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y)
+            Tracer.To = Vector2.new(screenPoint.X, screenPoint.Y)
+        else
+            Tracer.Visible = false
+        end
+    else
+        Final = Vector3.zero
+        Tracer.Visible = false
+    end
+end)
